@@ -51,6 +51,7 @@ htmlcov/
 tracepaper.db
 .env
 !.env.example
+temp.txt
 
 # Logs
 *.log

@@ -98,27 +98,27 @@ Each phase gates before the next to catch design issues early.
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│                     Workpaper Reviewer UI                    │
-│                    (React + FastAPI)                         │
+│                     Workpaper Reviewer UI                   │
+│                    (React + FastAPI)                        │
 └─────────────────────────────────────────────────────────────┘
                             ↑
                             │
 ┌─────────────────────────────────────────────────────────────┐
-│               Agent Loop (Tool-Use)                          │
+│               Agent Loop (Tool-Use)                         │
 │  ┌─────────────────────────────────────────────────────┐    │
-│  │  Tool Calls:                                         │    │
+│  │  Tool Calls:                                        │    │
 │  │  - search_evidence() ──→ Retrieval Module           │    │
-│  │  - fetch_page()                                      │    │
+│  │  - fetch_page()                                     │    │
 │  │  - extract_fields()                                 │    │
 │  │  - compare_dates/amounts (Python)                   │    │
 │  │  - record_finding()                                 │    │
 │  │  - flag_insufficient_evidence()                     │    │
 │  └─────────────────────────────────────────────────────┘    │
-│                    ↓                                          │
-│  Enforcement Pipeline:                                       │
+│                    ↓                                        │
+│  Enforcement Pipeline:                                      │
 │  1. Schema validation (retry-repair if needed)              │
-│  2. Citation resolution (resolve_citation checks)          │
-│  3. Deterministic recomputation                            │
+│  2. Citation resolution (resolve_citation checks)           │
+│  3. Deterministic recomputation                             │
 └─────────────────────────────────────────────────────────────┘
           ↑                          ↑
           │                          │
@@ -135,7 +135,7 @@ Each phase gates before the next to catch design issues early.
                     │ - Text Layer         │
                     │ - OCR Fallback       │
                     │ - Citation Validator │
-                    │ (resolve_citation) │
+                    │ (resolve_citation)   │
                     └──────────────────────┘
                                ↑
                                │
