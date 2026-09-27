@@ -1,0 +1,100 @@
+[project]
+name = "tracepaper"
+version = "0.0.1"
+description = "Agentic SOX control testing with enforced provenance"
+readme = "README.md"
+requires-python = ">=3.11"
+authors = [
+    {name = "Tracepaper Team"}
+]
+dependencies = [
+    # Core
+    "pydantic>=2.0",
+    "pydantic-settings>=2.0",
+    
+    # LLM
+    "requests>=2.31.0",
+    "anthropic>=0.28.0",
+    "ollama>=0.1.0",
+    
+    # Embeddings
+    "sentence-transformers>=2.2.0",
+    
+    # Web
+    "fastapi>=0.104.0",
+    "uvicorn[standard]>=0.24.0",
+    
+    # Database
+    "sqlalchemy>=2.0",
+    "alembic>=1.12.0",
+    
+    # Logging
+    "structlog>=23.1.0",
+    "python-json-logger>=2.0.7",
+    
+    # Document processing
+    "pdfplumber>=0.10.0",
+    "pymupdf>=1.23.0",
+    "pytesseract>=0.3.10",
+    "pillow>=10.0.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.4.0",
+    "pytest-cov>=4.1.0",
+    "pytest-asyncio>=0.21.0",
+    "ruff>=0.1.0",
+    "mypy>=1.6.0",
+    "types-requests",
+    "types-setuptools",
+]
+
+frontend = [
+    "nodejs>=18.0.0",
+]
+
+[tool.uv]
+dev-dependencies = [
+    "pytest>=7.4.0",
+    "pytest-cov>=4.1.0",
+    "pytest-asyncio>=0.21.0",
+    "ruff>=0.1.0",
+    "mypy>=1.6.0",
+    "types-requests",
+    "types-setuptools",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+addopts = "-v --cov=src/tracepaper --cov-report=term-missing"
+
+[tool.ruff]
+target-version = "py311"
+line-length = 100
+select = [
+    "E",   # pycodestyle errors
+    "W",   # pycodestyle warnings
+    "F",   # Pyflakes
+    "I",   # isort
+    "N",   # pep8-naming
+    "UP",  # pyupgrade
+    "B",   # flake8-bugbear
+]
+ignore = [
+    "E501",  # line too long (handled by formatter)
+]
+
+[tool.mypy]
+python_version = "3.11"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = false
+disallow_incomplete_defs = false
+
+[build-system]
+requires = ["setuptools>=68.0", "wheel"]
+build-backend = "setuptools.build_meta"

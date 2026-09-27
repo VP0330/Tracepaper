@@ -1,0 +1,45 @@
+version: "3.8"
+
+services:
+  ollama:
+    image: ollama/ollama:latest
+    container_name: tracepaper-ollama
+    ports:
+      - "11434:11434"
+    environment:
+      - OLLAMA_HOST=0.0.0.0:11434
+    volumes:
+      - ollama_data:/root/.ollama
+    command: serve
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:11434/api/tags"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  tracepaper-api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: tracepaper-api
+    ports:
+      - "8000:8000"
+    environment:
+      - OLLAMA_HOST=http://ollama:11434
+      - LOG_LEVEL=info
+      - CACHE_ENABLED=true
+    depends_on:
+      ollama:
+        condition: service_healthy
+    volumes:
+      - ./src:/app/src
+      - ./tests:/app/tests
+      - tracepaper_cache:/app/.cache
+      - tracepaper_db:/app/data
+    command: uvicorn tracepaper.api:app --host 0.0.0.0 --port 8000 --reload
+
+volumes:
+  ollama_data:
+  tracepaper_cache:
+  tracepaper_db:

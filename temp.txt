@@ -1,0 +1,10 @@
+Which phase are you starting with? — Phase 0 (Scaffold), or do you want a master plan covering the full project arc?
+phase 0
+What's your current state? — Are you starting from scratch in the empty VP0330/Tracepaper repo, or do you have existing code/structure?
+starting from stract
+Timeline/scope? — Is this a full end-to-end build, or focused on certain phases (e.g., just Phase 0–1 for now)?
+end to end
+Team vs. solo? — Will you be building this alone, or with others?
+solo
+Hardware constraints? — Do you have a local machine with Ollama capability, or will you be using Anthropic/API-based for the LLM?
+Ollama
