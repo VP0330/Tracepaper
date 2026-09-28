@@ -1,9 +1,10 @@
 """Anthropic LLM client implementation."""
 
-from typing import Any
+from typing import Any, cast
+
 import anthropic
 
-from .client import LLMClient, ChatResponse, ToolCall
+from .client import ChatResponse, ToolCall
 
 
 class AnthropicClient:
@@ -37,18 +38,20 @@ class AnthropicClient:
         Returns:
             ChatResponse with text, tool_calls, and usage.
         """
-        kwargs = {
-            "model": self.model,
-            "messages": messages,
-            "max_tokens": 4096,
-        }
-
-        # Add tools if provided
-        if tools:
-            kwargs["tools"] = tools
-
         try:
-            response = self.client.messages.create(**kwargs)
+            if tools:
+                response = self.client.messages.create(
+                    model=self.model,
+                    messages=cast(Any, messages),
+                    max_tokens=4096,
+                    tools=cast(Any, tools),
+                )
+            else:
+                response = self.client.messages.create(
+                    model=self.model,
+                    messages=cast(Any, messages),
+                    max_tokens=4096,
+                )
 
             # Extract text content
             text = ""

@@ -1,10 +1,11 @@
 """Ollama LLM client implementation."""
 
 import json
-import requests
 from typing import Any
 
-from .client import LLMClient, ChatResponse, ToolCall
+import requests
+
+from .client import ChatResponse, ToolCall
 
 
 class OllamaClient:

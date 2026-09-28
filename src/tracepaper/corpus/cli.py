@@ -1,7 +1,7 @@
 """Command-line interface for corpus generation."""
 
 import argparse
-from pathlib import Path
+
 from tracepaper.corpus.generator import CorpusGenerator
 
 

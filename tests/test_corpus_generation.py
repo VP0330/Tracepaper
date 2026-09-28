@@ -1,18 +1,17 @@
 """Tests for Phase 1 corpus generation."""
 
-import pytest
 import json
-from pathlib import Path
+
+import pytest
+
 from tracepaper.corpus import (
     ControlType,
     Disposition,
-    LabeledItem,
-    PopulationItem,
 )
+from tracepaper.corpus.generator import CorpusGenerator
+from tracepaper.corpus.jer import JournalEntryReviewGenerator
 from tracepaper.corpus.p2p import PurchaseToPayGenerator
 from tracepaper.corpus.uar import UserAccessReviewGenerator
-from tracepaper.corpus.jer import JournalEntryReviewGenerator
-from tracepaper.corpus.generator import CorpusGenerator
 
 
 class TestPurchaseToPayGenerator:
@@ -27,7 +26,7 @@ class TestPurchaseToPayGenerator:
         assert len(labels) == 3
 
         # Verify structure
-        for item, label in zip(pop_items, labels):
+        for item, label in zip(pop_items, labels, strict=True):
             assert item.control_type == ControlType.PURCHASE_TO_PAY
             assert label.control_type == ControlType.PURCHASE_TO_PAY
             assert item.population_item_id == label.population_item_id
@@ -35,11 +34,11 @@ class TestPurchaseToPayGenerator:
     def test_p2p_hard_cases(self):
         """Test that P2P plants intended hard cases."""
         gen = PurchaseToPayGenerator(seed=42)
-        pop_items, labels = gen.generate_sample_items(count=3)
+        _, labels = gen.generate_sample_items(count=3)
 
         # With seed=42, we should get specific patterns
-        dispositions = [l.overall_disposition for l in labels]
-        
+        dispositions = [label.overall_disposition for label in labels]
+
         # Should have mix of PASS and EXCEPTION
         assert Disposition.PASS in dispositions or Disposition.EXCEPTION in dispositions
 
@@ -75,7 +74,7 @@ class TestUserAccessReviewGenerator:
         assert len(pop_items) == 3
         assert len(labels) == 3
 
-        for item, label in zip(pop_items, labels):
+        for item, label in zip(pop_items, labels, strict=True):
             assert item.control_type == ControlType.USER_ACCESS_REVIEW
             assert label.control_type == ControlType.USER_ACCESS_REVIEW
 
@@ -109,7 +108,7 @@ class TestJournalEntryReviewGenerator:
         assert len(pop_items) == 3
         assert len(labels) == 3
 
-        for item, label in zip(pop_items, labels):
+        for item, label in zip(pop_items, labels, strict=True):
             assert item.control_type == ControlType.JOURNAL_ENTRY_REVIEW
             assert label.control_type == ControlType.JOURNAL_ENTRY_REVIEW
 
@@ -170,7 +169,7 @@ class TestCorpusGenerator:
         assert "journal_entry_review" in controls
 
         # Each control should have 3 items
-        for control_name, stats in controls.items():
+        for _control_name, stats in controls.items():
             assert stats["count"] == 3
             assert "exceptions" in stats
 
@@ -194,7 +193,7 @@ class TestCorpusGenerator:
         assert output_path.exists()
 
         # Load and verify
-        with open(output_path, "r") as f:
+        with open(output_path) as f:
             loaded = json.load(f)
 
         assert loaded["metadata"]["total_population_items"] == 9
@@ -223,7 +222,7 @@ class TestCorpusGenerator:
         assert len(corpus1["labels"]) == len(corpus2["labels"])
 
         # Sample a few items to verify they match
-        for pop1, pop2 in zip(corpus1["population"][:3], corpus2["population"][:3]):
+        for pop1, pop2 in zip(corpus1["population"][:3], corpus2["population"][:3], strict=True):
             assert pop1["population_item_id"] == pop2["population_item_id"]
             assert pop1["data"]["amount"] == pop2["data"]["amount"]
 
@@ -236,7 +235,7 @@ class TestDispositionLogic:
         gen = PurchaseToPayGenerator(seed=42)
         pop_items, labels = gen.generate_sample_items(count=10)
 
-        for pop, label in zip(pop_items, labels):
+        for pop, label in zip(pop_items, labels, strict=True):
             amount = pop.data["amount"]
             threshold = pop.data["threshold"]
 
@@ -271,7 +270,7 @@ class TestDispositionLogic:
         gen = JournalEntryReviewGenerator(seed=42)
         pop_items, labels = gen.generate_sample_items(count=10)
 
-        for pop, label in zip(pop_items, labels):
+        for pop, label in zip(pop_items, labels, strict=True):
             amount = pop.data["amount"]
             threshold = pop.data["threshold"]
 
