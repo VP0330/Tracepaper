@@ -1,6 +1,6 @@
 """Database setup using SQLAlchemy and SQLite."""
 
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, text
 from sqlalchemy.orm import declarative_base, sessionmaker
 from sqlalchemy.pool import StaticPool
 
@@ -47,3 +47,8 @@ def init_db(engine):
         engine: SQLAlchemy Engine instance.
     """
     Base.metadata.create_all(engine)
+    with engine.begin() as connection:
+        connection.execute(text(
+            "CREATE VIRTUAL TABLE IF NOT EXISTS chunks_fts USING fts5(" 
+            "chunk_id UNINDEXED, doc_id UNINDEXED, extracted_text)"
+        ))
