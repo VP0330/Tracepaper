@@ -1,6 +1,5 @@
 """Tests for configuration module."""
 
-import pytest
 from tracepaper.config import Settings, get_settings
 
 

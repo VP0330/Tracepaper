@@ -1,9 +1,9 @@
 """FastAPI application stub. Full implementation in Phase 5."""
 
 from fastapi import FastAPI
-from fastapi.responses import JSONResponse
-from tracepaper.logging import setup_logging, get_logger
+
 from tracepaper.config import get_settings
+from tracepaper.logging import get_logger, setup_logging
 
 # Setup logging
 settings = get_settings()

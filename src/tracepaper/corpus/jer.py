@@ -7,7 +7,6 @@ from typing import Any
 from tracepaper.corpus import (
     ControlType,
     Disposition,
-    Citation,
     LabeledItem,
     PopulationItem,
 )
@@ -109,7 +108,6 @@ class JournalEntryReviewGenerator:
                 # Happy path: over-threshold, segregated, with explanation
                 reviewer = random.choice([r for r in self.reviewers])
                 has_explanation = True
-                same_preparer_reviewer = False
                 doc_ids = [f"{item_id}_je", f"{item_id}_explanation"]
                 disposition = Disposition.PASS if amount >= 100000 else Disposition.PASS
                 hard_case = "Over-threshold with proper segregation and explanation"
@@ -118,7 +116,6 @@ class JournalEntryReviewGenerator:
                 # Exception: over-threshold, NO segregation (same preparer = reviewer)
                 reviewer = preparer
                 has_explanation = True
-                same_preparer_reviewer = True
                 doc_ids = [f"{item_id}_je", f"{item_id}_explanation"]
                 disposition = (
                     Disposition.EXCEPTION if amount >= 100000 else Disposition.PASS
@@ -129,7 +126,6 @@ class JournalEntryReviewGenerator:
                 # Exception: over-threshold, no explanation
                 reviewer = random.choice([r for r in self.reviewers])
                 has_explanation = False
-                same_preparer_reviewer = False
                 doc_ids = [f"{item_id}_je"]
                 disposition = (
                     Disposition.EXCEPTION if amount >= 100000 else Disposition.PASS
@@ -140,7 +136,6 @@ class JournalEntryReviewGenerator:
                 # Missing evidence: no review at all
                 reviewer = None
                 has_explanation = False
-                same_preparer_reviewer = False
                 doc_ids = [f"{item_id}_je"]
                 disposition = (
                     Disposition.INSUFFICIENT_EVIDENCE
@@ -170,7 +165,7 @@ class JournalEntryReviewGenerator:
             has_segregation = (
                 preparer != reviewer if reviewer else False
             )
-            
+
             label = LabeledItem(
                 population_item_id=item_id,
                 control_id=self.control_id,

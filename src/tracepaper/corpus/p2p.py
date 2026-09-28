@@ -1,15 +1,13 @@
 """Generator for Purchase-to-Pay control test data."""
 
 import random
-import uuid
 from datetime import datetime, timedelta
 from typing import Any
 
 from tracepaper.corpus import (
+    Citation,
     ControlType,
     Disposition,
-    Citation,
-    AttributeResult,
     LabeledItem,
     PopulationItem,
 )
@@ -125,7 +123,6 @@ class PurchaseToPayGenerator:
             payment_date = (base_date + timedelta(days=random.randint(1, 10))).strftime(
                 "%Y-%m-%d"
             )
-            po_date = (base_date - timedelta(days=random.randint(5, 20))).strftime("%Y-%m-%d")
             po_number = f"PO-{random.randint(100000, 999999)}"
 
             # Vary cases
@@ -137,7 +134,6 @@ class PurchaseToPayGenerator:
                 approval_date = payment_date  # On or before payment
                 approver_is_requester = False
                 has_approval = True
-                doc_count = 4  # PO, Invoice, Approval email, nothing else
                 disposition = Disposition.PASS if invoice_amount >= 10000 else Disposition.PASS
                 hard_case = "Standard compliant case"
 
@@ -148,7 +144,6 @@ class PurchaseToPayGenerator:
                 ).strftime("%Y-%m-%d")
                 approver_is_requester = False
                 has_approval = True
-                doc_count = 4
                 disposition = (
                     Disposition.EXCEPTION if invoice_amount >= 10000 else Disposition.PASS
                 )
@@ -159,7 +154,6 @@ class PurchaseToPayGenerator:
                 approval_date = payment_date
                 approver_is_requester = True
                 has_approval = True
-                doc_count = 4
                 disposition = (
                     Disposition.EXCEPTION if invoice_amount >= 10000 else Disposition.PASS
                 )
@@ -170,7 +164,6 @@ class PurchaseToPayGenerator:
                 approval_date = payment_date
                 approver_is_requester = False
                 has_approval = False
-                doc_count = 2  # Only PO and Invoice
                 disposition = (
                     Disposition.INSUFFICIENT_EVIDENCE
                     if invoice_amount >= 10000
