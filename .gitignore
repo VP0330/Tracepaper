@@ -51,7 +51,17 @@ htmlcov/
 tracepaper.db
 .env
 !.env.example
+corpus_data/
+MAKEFILE_ADDITIONS.txt
 temp.txt
+PHASE1_COMPLETE.md
+PHASE1_GATE.md
+PHASE1_TEST_RESULTS.md
+
+# Phase 1 Tests
+test_phase1.py
+test_phase1_full.py
+show_corpus_stats.py
 
 # Logs
 *.log
@@ -60,3 +70,6 @@ logs/
 # OS
 Thumbs.db
 .DS_Store
+
+
+.txt
