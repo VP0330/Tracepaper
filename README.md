@@ -20,7 +20,7 @@ That citation must be mechanically validated against extracted source text befor
 
 - **Backend**: Python 3.11, FastAPI, Pydantic v2, uv for dependency management
 - **LLM**: Provider-abstracted client (Ollama or Anthropic) via `LLMClient` protocol
-  - Default: `qwen2.5:14b-instruct` (or 7b-instruct if ≤12GB VRAM)
+  - Default: `qwen2.5:7b-instruct` (set `LLM_MODEL` to use a larger model if you have the memory; the 14B model can be killed by the OOM killer on CPU-only machines)
   - PostgreSQL response cache keyed by provider/model, prompt, and schema
 - **Embeddings**: Local via sentence-transformers (all-MiniLM-L6-v2)
 - **OCR**: pdfplumber/PyMuPDF for text layer; Tesseract fallback for scanned pages
@@ -85,7 +85,7 @@ This will:
 make models
 ```
 
-Downloads `qwen2.5:14b-instruct` and `qwen2.5:7b-instruct` to Ollama.
+Downloads the models listed in `scripts/pull_models.py` to Ollama.
 
 ### 3. Run Tests
 
@@ -147,6 +147,22 @@ npm run dev
 
 Open `http://localhost:5173`, sign in as the bootstrapped administrator, and use Team to issue reviewer invitations. Upload PDF, CSV, or EML evidence; Ollama classifies/extracts it, then enabled rules create discrepancy flags for review.
 
+### Document classification (database-driven)
+
+Classification is configured entirely in PostgreSQL, not in code. Edits take effect on the next upload with no restart.
+
+| Table | Purpose |
+| --- | --- |
+| `classification_types` | `category` (`document` or `control`), `value`, `label`, `description`, `sort_order`, `enabled`. Only enabled rows are offered to the model and the UI. |
+| `prompt_templates` | `document_understanding` (page classification; supports `{document_types}` and `{control_types}`) and `document_extraction` (field extraction; supports `{document_type}` and `{document_type_description}`). |
+| `document_segments` | Created automatically. One row per detected section: page range, type, control, confidence, summary, extracted fields. |
+
+Uploads are processed in two passes:
+
+1. **Classify** every page on its own (type, control, confidence, summary).
+2. **Split and extract**: consecutive pages with the same type form a section, and fields are extracted once per section from that section's text. Sections classified `other` skip extraction.
+
+The document-level type is the longest section that is not `other`. The UI shows each section as an expandable item with its summary and extracted fields. A 12-page PDF makes roughly 12 classification calls plus one extraction call per section, so expect it to be slow on CPU. If a prompt row is missing or no types are enabled, the upload fails with a clear error and there is no code fallback. The rules form reads its options from `GET /api/v1/classification-types`.
 ### Run the seeded workflow
 
 ```powershell
@@ -221,8 +237,8 @@ Settings are loaded from environment variables or `.env`:
 ```bash
 # LLM
 LLM_PROVIDER=ollama              # or "anthropic"
-LLM_MODEL=qwen2.5:14b-instruct   # or 7b-instruct
-OLLAMA_HOST=http://localhost:11434
+LLM_MODEL=qwen2.5:7b-instruct    # larger models need more memory
+OLLAMA_HOST=http://localhost:11435   # docker-compose maps Ollama to host port 11435
 ANTHROPIC_API_KEY=sk-...         # if using Anthropic
 
 # Embeddings
