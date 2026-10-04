@@ -26,15 +26,15 @@ That citation must be mechanically validated against extracted source text befor
 - **OCR**: pdfplumber/PyMuPDF for text layer; Tesseract fallback for scanned pages
 - **Retrieval**: PostgreSQL full-text search + sentence-transformers dense + Reciprocal Rank Fusion
 - **Storage**: PostgreSQL via SQLAlchemy; binary uploads, identities, rules, findings, and chunks are persisted there
-- **Frontend**: React + Vite + TypeScript, Tailwind (Phase 5)
+- **Frontend**: React + Vite + TypeScript
 - **Tests**: pytest; CI: GitHub Actions
 - **Local Dev**: Makefile + docker-compose
 
 ## Hardware Requirements
 
-**Minimum**: ≥12GB VRAM or unified memory if running Ollama locally.
+The default `qwen2.5:7b-instruct` model needs roughly 8GB of free RAM (CPU) or VRAM. Larger models such as `qwen2.5:14b-instruct` need ≥16GB; if Ollama logs `signal: killed` while loading a model, it ran out of memory, so use a smaller model.
 
-If you have <12GB, use the Anthropic provider (`LLM_PROVIDER=anthropic`) and set `LLM_API_KEY`.
+Without enough memory, use the Anthropic provider (`LLM_PROVIDER=anthropic`) and set `ANTHROPIC_API_KEY`.
 
 ## Quick Start
 
@@ -52,27 +52,13 @@ cd Tracepaper
 make dev
 ```
 
-For a local development setup, start PostgreSQL and Ollama:
+For a local development setup, start PostgreSQL and Ollama from the repository root:
 
 ```powershell
 docker compose up -d postgres ollama
 ```
 
-The default PostgreSQL URL is `postgresql+psycopg://tracepaper:tracepaper@localhost:5432/tracepaper`. Override it with `DATABASE_URL` in `.env` if needed. Copy `.env.example` to `.env` before customizing settings.
-
-Start PostgreSQL and Ollama before running the app. Local PostgreSQL defaults to:
-
-```text
-postgresql+psycopg://tracepaper:tracepaper@localhost:5432/tracepaper
-```
-
-For local development, the Compose services can be started with:
-
-```powershell
-docker compose up -d postgres ollama
-```
-
-Set `DATABASE_URL` in `.env` if your PostgreSQL connection differs. Auth records, uploaded file bytes, extracted chunks, audit rules, and review flags are persisted in PostgreSQL.
+Local PostgreSQL defaults to host `localhost:5432` with database, user, and password all `tracepaper`. Override the connection with `DATABASE_URL` in `.env` if needed. Copy `.env.example` to `.env` before customizing settings; for Docker Ollama set `OLLAMA_HOST=http://localhost:11435`. Auth records, uploaded file bytes, extracted chunks, audit rules, and review flags are persisted in PostgreSQL.
 
 This will:
 - Install dependencies with uv
@@ -85,7 +71,7 @@ This will:
 make models
 ```
 
-Downloads the models listed in `scripts/pull_models.py` to Ollama.
+Downloads the models listed in `scripts/pull_models.py` to Ollama. With Docker Ollama you can also run `docker exec tracepaper-ollama ollama pull qwen2.5:7b-instruct`. Models live in the `ollama_data` volume, so `docker compose down -v` deletes them (and the database).
 
 ### 3. Run Tests
 
@@ -176,6 +162,10 @@ python -m tracepaper.eval.compare
 ```
 
 Start the reviewer API with `uvicorn tracepaper.api:app --reload`, then run the frontend from `frontend/` with `npm install; npm run dev`.
+
+### Inspecting the database
+
+Connect a client such as DBeaver to PostgreSQL at `localhost:5432`, database `tracepaper`, schema `public`. Tables are created when the API starts. Nothing application-related is stored in code or local files; the LLM response cache is also kept in PostgreSQL.
 
 Each phase gates before the next to catch design issues early.
 
@@ -335,7 +325,3 @@ docker-compose down
 ## License
 
 MIT
-
----
-
-**Phase 0 Status**: ✓ Complete. Ready for Phase 1 (synthetic corpus generation).
