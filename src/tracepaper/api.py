@@ -24,7 +24,8 @@ from tracepaper.ingestion.extraction import DocumentExtractor
 from tracepaper.ingestion.understanding import DocumentUnderstandingService
 from tracepaper.retrieval import EvidenceRetriever
 from tracepaper.storage.models import (
-    AuditFindingRecord, AuditRuleRecord, UploadedDocumentRecord, UserRecord,
+    AuditFindingRecord, AuditRuleRecord, ClassificationTypeRecord, DocumentSegmentRecord,
+    UploadedDocumentRecord, UserRecord,
 )
 from sqlalchemy import select
 
@@ -146,8 +147,19 @@ def _scoped_tools(user: UserRecord) -> EvidenceTools:
     return EvidenceTools(get_retriever(), allowed_doc_ids=_owner_document_ids(user.user_id))
 
 
-def _serialize_document(document: UploadedDocumentRecord) -> dict[str, Any]:
+def _serialize_segment(segment: DocumentSegmentRecord) -> dict[str, Any]:
     return {
+        "start_page": segment.start_page, "end_page": segment.end_page,
+        "document_type": segment.document_type, "control_type": segment.control_type,
+        "confidence": segment.confidence, "summary": segment.summary, "fields": segment.fields,
+    }
+
+
+def _serialize_document(
+    document: UploadedDocumentRecord, segments: list[DocumentSegmentRecord] | None = None,
+) -> dict[str, Any]:
+    return {
+        "segments": [_serialize_segment(item) for item in segments or []],
         "document_id": document.document_id,
         "original_name": document.original_name,
         "status": document.status,
@@ -327,9 +339,18 @@ async def upload_document(
         )
         with get_auth_service().session_factory() as session:
             session.add(document)
+            session.flush()
+            segment_records = [DocumentSegmentRecord(
+                segment_id=str(uuid4()), document_id=document_id, start_page=item["start_page"],
+                end_page=item["end_page"], document_type=item["document_type"],
+                control_type=item["control_type"], confidence=float(item["confidence"]),
+                summary=item["summary"], fields=item["fields"],
+            ) for item in result.get("segments") or []]
+            session.add_all(segment_records)
             flags = _apply_matching_rules(session, document)
             session.commit()
-        return {"document": _serialize_document(document), "flags": flags}
+            serialized = _serialize_document(document, segment_records)
+        return {"document": serialized, "flags": flags}
     except (ValueError, RuntimeError) as exc:
         raise HTTPException(status_code=502, detail=f"Document understanding failed: {exc}") from exc
     finally:
@@ -346,7 +367,24 @@ async def list_documents(user: UserRecord = Depends(current_user)) -> dict[str, 
         documents = session.scalars(select(UploadedDocumentRecord).where(
             UploadedDocumentRecord.owner_id == user.user_id,
         ).order_by(UploadedDocumentRecord.created_at.desc())).all()
-        return {"documents": [_serialize_document(item) for item in documents]}
+        segments: dict[str, list[DocumentSegmentRecord]] = {}
+        for segment in session.scalars(select(DocumentSegmentRecord).where(
+            DocumentSegmentRecord.document_id.in_([item.document_id for item in documents]),
+        ).order_by(DocumentSegmentRecord.start_page)).all():
+            segments.setdefault(segment.document_id, []).append(segment)
+        return {"documents": [_serialize_document(item, segments.get(item.document_id)) for item in documents]}
+
+
+@app.get("/api/v1/classification-types")
+async def list_classification_types(user: UserRecord = Depends(current_user)) -> dict[str, Any]:
+    with get_auth_service().session_factory() as session:
+        rows = session.scalars(select(ClassificationTypeRecord).where(
+            ClassificationTypeRecord.enabled.is_(True),
+        ).order_by(ClassificationTypeRecord.sort_order, ClassificationTypeRecord.value)).all()
+        result: dict[str, list[dict[str, str]]] = {"control": [], "document": []}
+        for row in rows:
+            result.setdefault(row.category, []).append({"value": row.value, "label": row.label})
+        return result
 
 
 @app.get("/api/v1/documents/{document_id}/pages/{page}")
@@ -378,7 +416,12 @@ async def create_audit_rule(
 ) -> dict[str, Any]:
     if payload.operator not in SUPPORTED_OPERATORS:
         raise HTTPException(status_code=422, detail=f"Operator must be one of {sorted(SUPPORTED_OPERATORS)}")
-    if payload.control_type not in {"purchase_to_pay", "user_access_review", "journal_entry_review"}:
+    with get_auth_service().session_factory() as session:
+        allowed_controls = set(session.scalars(select(ClassificationTypeRecord.value).where(
+            ClassificationTypeRecord.category == "control",
+            ClassificationTypeRecord.enabled.is_(True),
+        )).all())
+    if payload.control_type not in allowed_controls:
         raise HTTPException(status_code=422, detail="Unsupported control type")
     if payload.severity not in {"low", "medium", "high", "critical"}:
         raise HTTPException(status_code=422, detail="Severity must be low, medium, high, or critical")

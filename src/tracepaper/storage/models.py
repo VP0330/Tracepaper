@@ -116,6 +116,42 @@ class AuditFindingRecord(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
 
 
+class ClassificationTypeRecord(Base):
+    __tablename__ = "classification_types"
+
+    category: Mapped[str] = mapped_column(String(64), primary_key=True)
+    value: Mapped[str] = mapped_column(String(128), primary_key=True)
+    label: Mapped[str] = mapped_column(Text)
+    description: Mapped[str] = mapped_column(Text, default="")
+    sort_order: Mapped[int] = mapped_column(Integer, default=0)
+    enabled: Mapped[bool] = mapped_column(Boolean, default=True)
+
+
+class PromptTemplateRecord(Base):
+    __tablename__ = "prompt_templates"
+
+    prompt_key: Mapped[str] = mapped_column(String(128), primary_key=True)
+    content: Mapped[str] = mapped_column(Text)
+    updated_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+
+
+class DocumentSegmentRecord(Base):
+    __tablename__ = "document_segments"
+
+    segment_id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    document_id: Mapped[str] = mapped_column(
+        ForeignKey("uploaded_documents.document_id", ondelete="CASCADE"), index=True,
+    )
+    start_page: Mapped[int] = mapped_column(Integer)
+    end_page: Mapped[int] = mapped_column(Integer)
+    document_type: Mapped[str] = mapped_column(String(128))
+    control_type: Mapped[str] = mapped_column(String(64))
+    confidence: Mapped[float] = mapped_column(Float)
+    summary: Mapped[str] = mapped_column(Text, default="")
+    fields: Mapped[dict] = mapped_column(JSON, default=dict)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+
+
 class LLMCacheRecord(Base):
     __tablename__ = "llm_response_cache"
 

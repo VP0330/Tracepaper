@@ -6,7 +6,7 @@ from tracepaper import api
 from tracepaper.auth import AuthService
 from tracepaper.config import Settings
 from tracepaper.retrieval import EvidenceRetriever
-from tracepaper.storage.models import UserRecord
+from tracepaper.storage.models import ClassificationTypeRecord, UserRecord
 
 
 class StubUnderstanding:
@@ -28,6 +28,11 @@ def test_upload_classifies_extracts_and_flags_rule(monkeypatch):
         session.expunge(owner)
 
     retriever = EvidenceRetriever()
+    with auth.session_factory() as session:
+        session.add(ClassificationTypeRecord(
+            category="control", value="purchase_to_pay", label="P2P", description="", sort_order=1, enabled=True,
+        ))
+        session.commit()
     monkeypatch.setattr(api, "get_auth_service", lambda: auth)
     monkeypatch.setattr(api, "get_retriever", lambda: retriever)
     monkeypatch.setattr(api, "get_document_understanding", lambda: StubUnderstanding())
