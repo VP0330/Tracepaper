@@ -18,7 +18,10 @@ class Settings(BaseSettings):
 
     # Storage Configuration
     db_path: str = "tracepaper.db"
+    database_url: str = "postgresql+psycopg://tracepaper:tracepaper@localhost:5432/tracepaper"
     cache_dir: str = ".cache"
+    invite_expiry_hours: int = 72
+    session_expiry_hours: int = 12
 
     # Logging Configuration
     log_level: str = "info"

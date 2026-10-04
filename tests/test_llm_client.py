@@ -4,6 +4,7 @@ import pytest
 import json
 from pathlib import Path
 from tracepaper.llm.client import ChatResponse, ToolCall, CachedLLMClient
+from tracepaper.llm.cache import DatabaseCachedLLMClient
 
 
 class MockClient:
@@ -85,3 +86,15 @@ def test_tool_call_creation():
 
     assert tool_call.name == "search"
     assert tool_call.arguments["query"] == "test"
+
+
+def test_database_cached_client_persists_mock_response():
+    mock = MockClient(response_text="postgres-backed cache")
+    cached = DatabaseCachedLLMClient(mock, "sqlite:///:memory:")
+    messages = [{"role": "user", "content": "invoice analysis"}]
+
+    first = cached.chat(messages)
+    second = cached.chat(messages)
+
+    assert first.text == second.text == "postgres-backed cache"
+    assert mock.call_count == 1

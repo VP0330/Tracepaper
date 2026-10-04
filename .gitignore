@@ -78,3 +78,32 @@ Thumbs.db
 ingestion_phase2a.py
 quick_test.py
 run_phase2a.bat
+
+# Frontend dependencies and build output
+frontend/node_modules/
+frontend/dist/
+
+# Generated evaluation output
+corpus_data/eval_results.json
+
+# Virtual environments and tool caches
+.venv/
+.mypy_cache/
+.ruff_cache/
+coverage.xml
+.coverage.*
+
+# Secrets and local environment files (keep the example)
+.env.*
+!.env.example
+
+# Local databases and uploaded/sample evidence
+*.sqlite
+*.sqlite3
+uploads/
+Audit.pdf
+
+# Frontend build artifacts
+*.tsbuildinfo
+frontend/.vite/
+npm-debug.log*

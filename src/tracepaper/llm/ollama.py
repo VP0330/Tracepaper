@@ -61,7 +61,7 @@ class OllamaClient:
             payload["messages"] = messages
 
         try:
-            response = requests.post(self.chat_endpoint, json=payload, timeout=60)
+            response = requests.post(self.chat_endpoint, json=payload, timeout=300)
             response.raise_for_status()
             data = response.json()
 

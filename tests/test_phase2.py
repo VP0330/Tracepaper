@@ -32,6 +32,26 @@ def test_text_backed_pdf_fixture_is_supported(tmp_path: Path):
     assert "Invoice total" in page.text
 
 
+def test_approval_email_preserves_sections(tmp_path: Path):
+    from tracepaper.ingestion import P2PDocumentGenerator
+
+    generator = P2PDocumentGenerator(output_dir=str(tmp_path))
+    path = generator._generate_approval_email(tmp_path, "approval", {
+        "requester": "alice.smith@company.com",
+        "approver": "diana.white@company.com",
+        "po_number": "PO-749468",
+        "payment_date": "2026-08-22",
+        "vendor": "Global Supplies Ltd",
+        "amount": 15000,
+    })
+    content = path.read_text(encoding="utf-8")
+
+    assert "From: alice.smith@company.com" in content
+    assert "To: diana.white@company.com" in content
+    assert "Body:\nI have reviewed and approved" in content
+    assert "Signature:\nBest regards,\nalice.smith@company.com" in content
+
+
 def test_citation_accepts_source_and_rejects_hallucination():
     pages = [ExtractedPage(1, "Approval status: APPROVED", "text_layer")]
     chunks = chunk_pages("doc-1", pages)
@@ -63,3 +83,30 @@ def test_retrieval_preserves_provenance():
     assert results[0].doc_id == "doc-1"
     assert results[0].page == 1
     assert results[0].bbox == (0.0, 0.0, 1.0, 1.0)
+
+
+def test_hybrid_retrieval_returns_rrf_metadata():
+    pages = [ExtractedPage(1, "Invoice approved by finance", "text_layer")]
+    chunks = chunk_pages("doc-1", pages)
+    retriever = EvidenceRetriever()
+    retriever.store.insert_chunks(chunks)
+
+    results = retriever.search("invoice finance")
+
+    assert results
+    assert results[0].score > 0
+    assert results[0].lexical_rank == 1
+    assert results[0].dense_rank == 1
+
+
+def test_retriever_refreshes_after_chunks_are_added():
+    retriever = EvidenceRetriever()
+    assert retriever.search("new vendor") == []
+    retriever.store.insert_chunks(chunk_pages(
+        "uploaded-doc", [ExtractedPage(1, "New vendor Northwind", "text_layer")]
+    ))
+
+    results = retriever.search("Northwind")
+
+    assert results
+    assert results[0].doc_id == "uploaded-doc"

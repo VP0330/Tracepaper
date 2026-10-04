@@ -1,18 +1,35 @@
 version: "3.8"
 
 services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: tracepaper-postgres
+    environment:
+      POSTGRES_DB: tracepaper
+      POSTGRES_USER: tracepaper
+      POSTGRES_PASSWORD: tracepaper
+    ports:
+      - "5432:5432"
+    volumes:
+      - tracepaper_postgres:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U tracepaper -d tracepaper"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
   ollama:
     image: ollama/ollama:latest
     container_name: tracepaper-ollama
     ports:
-      - "11434:11434"
+      - "11435:11435"
     environment:
-      - OLLAMA_HOST=0.0.0.0:11434
+      - OLLAMA_HOST=0.0.0.0:11435
     volumes:
       - ollama_data:/root/.ollama
     command: serve
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:11434/api/tags"]
+      test: ["CMD", "curl", "-f", "http://localhost:11435/api/tags"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -26,20 +43,21 @@ services:
     ports:
       - "8000:8000"
     environment:
-      - OLLAMA_HOST=http://ollama:11434
+      - OLLAMA_HOST=http://ollama:11435
+      - DATABASE_URL=postgresql+psycopg://tracepaper:tracepaper@postgres:5432/tracepaper
       - LOG_LEVEL=info
       - CACHE_ENABLED=true
     depends_on:
+      postgres:
+        condition: service_healthy
       ollama:
         condition: service_healthy
     volumes:
       - ./src:/app/src
       - ./tests:/app/tests
-      - tracepaper_cache:/app/.cache
-      - tracepaper_db:/app/data
+      - ./corpus_data:/app/corpus_data
     command: uvicorn tracepaper.api:app --host 0.0.0.0 --port 8000 --reload
 
 volumes:
+  tracepaper_postgres:
   ollama_data:
-  tracepaper_cache:
-  tracepaper_db:

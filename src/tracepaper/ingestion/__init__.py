@@ -94,21 +94,23 @@ Due Date: {data.get('invoice_date', 'N/A')}
         
         approval_date = data.get('payment_date', 'N/A')
         
-        email_content = f"""From: {data.get('approver', 'approver@company.com')}
-To: {data.get('requester', 'requester@company.com')}
+        email_content = f"""From: {data.get('requester', 'requester@company.com')}
+To: {data.get('approver', 'approver@company.com')}
 Subject: PO Approval - {data.get('po_number', 'PO-000000')}
 Date: {approval_date}
 
 APPROVED
 
+Body:
 I have reviewed and approved the purchase order {data.get('po_number', 'PO-000000')} for {data.get('vendor', 'Unknown Vendor')}.
 
 Amount: ${data.get('amount', 0):,.2f}
 Description: Professional Services
 Approval Date: {approval_date}
 
+Signature:
 Best regards,
-{data.get('approver', 'Approver Name')}
+{data.get('requester', 'Requester Name')}
 """
         output_path.write_text(email_content)
         return output_path

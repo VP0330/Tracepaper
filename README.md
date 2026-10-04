@@ -21,11 +21,11 @@ That citation must be mechanically validated against extracted source text befor
 - **Backend**: Python 3.11, FastAPI, Pydantic v2, uv for dependency management
 - **LLM**: Provider-abstracted client (Ollama or Anthropic) via `LLMClient` protocol
   - Default: `qwen2.5:14b-instruct` (or 7b-instruct if ≤12GB VRAM)
-  - Disk cache on LLM calls (keyed on provider + model + prompt hash + tool schema hash)
+  - PostgreSQL response cache keyed by provider/model, prompt, and schema
 - **Embeddings**: Local via sentence-transformers (all-MiniLM-L6-v2)
 - **OCR**: pdfplumber/PyMuPDF for text layer; Tesseract fallback for scanned pages
-- **Retrieval**: SQLite FTS5 for BM25 + sentence-transformers dense + Reciprocal Rank Fusion
-- **Storage**: SQLite via SQLAlchemy
+- **Retrieval**: PostgreSQL full-text search + sentence-transformers dense + Reciprocal Rank Fusion
+- **Storage**: PostgreSQL via SQLAlchemy; binary uploads, identities, rules, findings, and chunks are persisted there
 - **Frontend**: React + Vite + TypeScript, Tailwind (Phase 5)
 - **Tests**: pytest; CI: GitHub Actions
 - **Local Dev**: Makefile + docker-compose
@@ -51,6 +51,28 @@ git clone https://github.com/VP0330/Tracepaper.git
 cd Tracepaper
 make dev
 ```
+
+For a local development setup, start PostgreSQL and Ollama:
+
+```powershell
+docker compose up -d postgres ollama
+```
+
+The default PostgreSQL URL is `postgresql+psycopg://tracepaper:tracepaper@localhost:5432/tracepaper`. Override it with `DATABASE_URL` in `.env` if needed. Copy `.env.example` to `.env` before customizing settings.
+
+Start PostgreSQL and Ollama before running the app. Local PostgreSQL defaults to:
+
+```text
+postgresql+psycopg://tracepaper:tracepaper@localhost:5432/tracepaper
+```
+
+For local development, the Compose services can be started with:
+
+```powershell
+docker compose up -d postgres ollama
+```
+
+Set `DATABASE_URL` in `.env` if your PostgreSQL connection differs. Auth records, uploaded file bytes, extracted chunks, audit rules, and review flags are persisted in PostgreSQL.
 
 This will:
 - Install dependencies with uv
@@ -92,6 +114,53 @@ Runs ruff and mypy.
 - **Phase 6** Eval harness: metrics, ablations, hand-labeled citation precision
 - **Phase 7** Ship: docs, Dockerfile, seeded demo, 90-second live script
 
+## Current Phase Status
+
+- **Phase 5** Reviewer API and React/Vite reviewer workspace are available.
+- **Phase 6** Deterministic evaluation harness and result comparison are available.
+- **Phase 7** Seeded local demo is available with `make demo`.
+- PostgreSQL is the application database; SQLite is retained only for isolated tests.
+- Uploaded files are stored as PostgreSQL binary data; their extracted chunks and audit metadata are stored in the same database.
+
+### Start the application
+
+Provision the first administrator (once, with PostgreSQL running):
+
+```powershell
+python -m tracepaper.auth_admin
+```
+
+Start the API from the repository root:
+
+```powershell
+$env:PYTHONPATH = "$PWD/src"
+uvicorn tracepaper.api:app --reload
+```
+
+In a second terminal, start the frontend:
+
+```powershell
+cd frontend
+npm install
+npm run dev
+```
+
+Open `http://localhost:5173`, sign in as the bootstrapped administrator, and use Team to issue reviewer invitations. Upload PDF, CSV, or EML evidence; Ollama classifies/extracts it, then enabled rules create discrepancy flags for review.
+
+### Run the seeded workflow
+
+```powershell
+$env:PYTHONPATH = "$PWD/src"
+python -m tracepaper.corpus.cli --full --seed 42
+python run_phase2a.py
+python run_phase2b.py
+python run_phase3.py
+python -m tracepaper.eval.harness
+python -m tracepaper.eval.compare
+```
+
+Start the reviewer API with `uvicorn tracepaper.api:app --reload`, then run the frontend from `frontend/` with `npm install; npm run dev`.
+
 Each phase gates before the next to catch design issues early.
 
 ## Architecture Diagram
@@ -124,9 +193,9 @@ Each phase gates before the next to catch design issues early.
           │                          │
     ┌─────────────────┐    ┌──────────────────┐
     │  LLM Client     │    │ Retrieval        │
-    │ (Ollama/Claude)│    │ (BM25 + Dense)   │
-    │                │    │ SQLite FTS5      │
-    │  Disk Cache    │    │ Sentence-XF      │
+    │ (Ollama/Claude) │    │ (BM25 + Dense)   │
+    │                 │    │ PostgreSQL FTS   │
+    │ PostgreSQL Cache│    │ Sentence-XF      │
     └─────────────────┘    └──────────────────┘
                                ↑
                                │
@@ -141,7 +210,7 @@ Each phase gates before the next to catch design issues early.
                                │
                     ┌──────────────────────┐
                     │ Document Corpus      │
-                    │ (SQLite + PDF Store) │
+                    │ (PostgreSQL + BLOBs) │
                     └──────────────────────┘
 ```
 
@@ -160,7 +229,7 @@ ANTHROPIC_API_KEY=sk-...         # if using Anthropic
 EMBEDDINGS_MODEL=all-MiniLM-L6-v2
 
 # Storage
-DB_PATH=tracepaper.db
+DATABASE_URL=postgresql+psycopg://tracepaper:tracepaper@localhost:5432/tracepaper
 CACHE_DIR=.cache
 
 # Logging

@@ -1,4 +1,4 @@
-.PHONY: help dev test lint models seed eval eval-compare clean
+.PHONY: help dev test lint models seed eval eval-compare demo clean
 
 help:
 	@echo "Tracepaper - Agentic SOX control testing"
@@ -11,6 +11,7 @@ help:
 	@echo "  make seed             Generate synthetic test corpus (Phase 1)"
 	@echo "  make eval             Run evaluation harness (Phase 6)"
 	@echo "  make eval-compare     Compare eval results across runs"
+	@echo "  make demo             Run the seeded local demo"
 	@echo "  make clean            Remove cache and build artifacts"
 
 dev: install-deps check-ollama
@@ -52,6 +53,10 @@ eval:
 eval-compare:
 	@echo "Comparing eval results..."
 	@python -m tracepaper.eval.compare
+
+demo:
+	@echo "Running seeded Tracepaper demo..."
+	@python demo/seed_demo.py
 
 clean:
 	@echo "Cleaning up..."

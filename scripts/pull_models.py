@@ -6,7 +6,7 @@ from tracepaper.config import get_settings
 
 
 MODELS = [
-    "qwen2.5:14b-instruct",
+    #"qwen2.5:14b-instruct",
     "qwen2.5:7b-instruct",
 ]
 

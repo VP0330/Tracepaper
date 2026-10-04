@@ -13,6 +13,7 @@ def test_config_defaults():
     assert settings.ollama_host == "http://localhost:11434"
     assert settings.embeddings_model == "all-MiniLM-L6-v2"
     assert settings.db_path == "tracepaper.db"
+    assert settings.database_url.startswith("postgresql+psycopg://")
     assert settings.cache_dir == ".cache"
     assert settings.log_level == "info"
     assert settings.cache_enabled is False

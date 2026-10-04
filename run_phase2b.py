@@ -10,6 +10,7 @@ sys.path.insert(0, "src")
 from tracepaper.ingestion.citation import resolve_citation
 from tracepaper.ingestion.chunker import chunk_pages
 from tracepaper.ingestion.extraction import DocumentExtractor
+from tracepaper.config import get_settings
 from tracepaper.storage import ChunkStore
 
 
@@ -20,7 +21,7 @@ def main() -> None:
         manifest = json.load(handle)
 
     extractor = DocumentExtractor()
-    store = ChunkStore(str(root / "corpus_data" / "phase2.sqlite"))
+    store = ChunkStore(get_settings().database_url)
     method_counts: Counter[str] = Counter()
     total_chunks = 0
     failures: list[tuple[str, str]] = []

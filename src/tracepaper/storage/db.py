@@ -17,13 +17,16 @@ def get_engine(db_path: str):
     Returns:
         SQLAlchemy Engine instance.
     """
-    # Use StaticPool to allow access from multiple threads in tests
-    engine = create_engine(
-        f"sqlite:///{db_path}",
-        connect_args={"check_same_thread": False},
-        poolclass=StaticPool,
+    if db_path.startswith(("postgresql://", "postgresql+")):
+        return create_engine(db_path, pool_pre_ping=True)
+
+    sqlite_url = db_path if db_path.startswith("sqlite:") else (
+        "sqlite:///:memory:" if db_path == ":memory:" else f"sqlite:///{db_path}"
     )
-    return engine
+    options = {"connect_args": {"check_same_thread": False}}
+    if sqlite_url.endswith(":memory:"):
+        options["poolclass"] = StaticPool
+    return create_engine(sqlite_url, **options)
 
 
 def get_session_factory(engine):
@@ -47,8 +50,15 @@ def init_db(engine):
         engine: SQLAlchemy Engine instance.
     """
     Base.metadata.create_all(engine)
-    with engine.begin() as connection:
-        connection.execute(text(
-            "CREATE VIRTUAL TABLE IF NOT EXISTS chunks_fts USING fts5(" 
-            "chunk_id UNINDEXED, doc_id UNINDEXED, extracted_text)"
-        ))
+    if engine.dialect.name == "sqlite":
+        with engine.begin() as connection:
+            connection.execute(text(
+                "CREATE VIRTUAL TABLE IF NOT EXISTS chunks_fts USING fts5("
+                "chunk_id UNINDEXED, doc_id UNINDEXED, extracted_text)"
+            ))
+    elif engine.dialect.name == "postgresql":
+        with engine.begin() as connection:
+            connection.execute(text(
+                "CREATE INDEX IF NOT EXISTS ix_chunks_search_vector "
+                "ON chunks USING GIN (to_tsvector('english', extracted_text))"
+            ))

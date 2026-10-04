@@ -5,7 +5,6 @@ from email import policy
 from email.parser import BytesParser
 from pathlib import Path
 import csv
-import io
 
 
 @dataclass(frozen=True)
@@ -47,6 +46,26 @@ class DocumentExtractor:
 
         # Early Phase 2 fixtures used a text-backed .pdf placeholder. Keep those
         # fixtures ingestible while real PDFs continue through pdfplumber/OCR.
+        try:
+            import fitz
+            import pytesseract
+            from PIL import Image
+
+            document = fitz.open(path)
+            ocr_pages = []
+            for index, page in enumerate(document, 1):
+                pixmap = page.get_pixmap(matrix=fitz.Matrix(2, 2), alpha=False)
+                image = Image.frombytes("RGB", [pixmap.width, pixmap.height], pixmap.samples)
+                data = pytesseract.image_to_data(image, output_type=pytesseract.Output.DICT)
+                text = pytesseract.image_to_string(image).strip()
+                confidences = [float(value) for value in data["conf"] if float(value) >= 0]
+                confidence = sum(confidences) / len(confidences) / 100 if confidences else 0.0
+                ocr_pages.append(ExtractedPage(index, text, "ocr", ocr_confidence=confidence))
+            if ocr_pages:
+                return ocr_pages
+        except Exception:
+            pass
+
         raw = path.read_text(encoding="utf-8", errors="replace")
         if raw.startswith("PDF_TEXTLAYER\n"):
             return [ExtractedPage(1, raw.split("\n", 1)[1], "text_layer")]
