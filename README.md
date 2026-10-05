@@ -1,4 +1,4 @@
-# Tracepaper: Agentic SOX Control Testing with Enforced Provenance
+# Tracepaper: Agentic Control Testing with Enforced Provenance
 
 ## Problem
 
