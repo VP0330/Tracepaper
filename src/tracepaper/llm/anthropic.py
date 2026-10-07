@@ -38,7 +38,7 @@ class AnthropicClient:
         Returns:
             ChatResponse with text, tool_calls, and usage.
         """
-        kwargs = {
+        kwargs: dict[str, Any] = {
             "model": self.model,
             "messages": messages,
             "max_tokens": 4096,

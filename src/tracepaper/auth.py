@@ -120,7 +120,7 @@ class AuthService:
             ))
             if record is None:
                 return None
-            user = session.get(UserRecord, record.user_id)
+            user: UserRecord | None = session.get(UserRecord, record.user_id)
             if user:
                 session.expunge(user)
             return user

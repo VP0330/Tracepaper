@@ -23,7 +23,7 @@ def get_engine(db_path: str):
     sqlite_url = db_path if db_path.startswith("sqlite:") else (
         "sqlite:///:memory:" if db_path == ":memory:" else f"sqlite:///{db_path}"
     )
-    options = {"connect_args": {"check_same_thread": False}}
+    options: dict[str, object] = {"connect_args": {"check_same_thread": False}}
     if sqlite_url.endswith(":memory:"):
         options["poolclass"] = StaticPool
     return create_engine(sqlite_url, **options)

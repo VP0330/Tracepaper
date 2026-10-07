@@ -19,7 +19,7 @@ jobs:
       
       - name: Install dependencies
         run: |
-          pip install ruff mypy types-requests types-setuptools
+          pip install -e . ruff mypy types-requests types-setuptools
       
       - name: Run ruff
         run: ruff check src/ tests/

@@ -5,8 +5,10 @@ import math
 import re
 from collections import Counter
 from dataclasses import dataclass
+from typing import Any
 
 from tracepaper.storage import ChunkStore
+from tracepaper.storage.models import ChunkRecord
 
 
 @dataclass(frozen=True)
@@ -55,9 +57,9 @@ class EvidenceRetriever:
     def __init__(self, db_path: str = ":memory:", embedding_model: str | None = None):
         self.store = ChunkStore(db_path)
         self.embedding_model_name = embedding_model
-        self._dense_model = None
-        self._dense_index = None
-        self._chunks = []
+        self._dense_model: Any = None
+        self._dense_index: Any = None
+        self._chunks: list[ChunkRecord] = []
         self._chunk_fingerprint: tuple[str, ...] | None = None
 
     def _load_dense_index(self) -> None:

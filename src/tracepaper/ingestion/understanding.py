@@ -202,7 +202,8 @@ class DocumentUnderstandingService:
         )
         if not isinstance(result.get("fields"), dict):
             raise ValueError(f"{label}: the model did not return extracted fields")
-        return result["fields"]
+        fields: dict[str, Any] = result["fields"]
+        return fields
 
 
 def _build_segments(pages: list[Any], results: list[dict[str, Any] | None]) -> list[dict[str, Any]]:

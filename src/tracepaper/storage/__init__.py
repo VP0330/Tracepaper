@@ -109,9 +109,15 @@ class ChunkStore:
 
     def get_chunk_by_citation(self, doc_id: str, page: int) -> list[ChunkRecord]:
         with self.session_factory() as session:
-            return session.query(ChunkRecord).filter_by(doc_id=doc_id, page=page).all()
+            chunks: list[ChunkRecord] = session.query(ChunkRecord).filter_by(
+                doc_id=doc_id, page=page
+            ).all()
+            return chunks
 
     def get_all_chunks(self) -> list[ChunkRecord]:
         """Return all persisted chunks in stable insertion order."""
         with self.session_factory() as session:
-            return session.query(ChunkRecord).order_by(ChunkRecord.chunk_id).all()
+            chunks: list[ChunkRecord] = session.query(ChunkRecord).order_by(
+                ChunkRecord.chunk_id
+            ).all()
+            return chunks

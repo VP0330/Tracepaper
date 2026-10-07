@@ -533,18 +533,15 @@ async def validate_finding(
     except (KeyError, ValueError) as exc:
         raise HTTPException(status_code=422, detail=str(exc)) from exc
     finding_id = str(uuid4())
-    result = {
-        "valid": True,
-        "finding_id": finding_id,
-        "finding": {
-            "control_id": finding.control_id,
-            "population_item_id": finding.population_item_id,
-            "disposition": finding.disposition,
-            "rationale": finding.rationale,
-            "citations": list(finding.citations),
-        },
+    finding_details: dict[str, Any] = {
+        "control_id": finding.control_id,
+        "population_item_id": finding.population_item_id,
+        "disposition": finding.disposition,
+        "rationale": finding.rationale,
+        "citations": list(finding.citations),
     }
-    _finding_reviews[finding_id] = {**result["finding"], "owner_id": user.user_id, "status": "pending", "trace": [
+    result = {"valid": True, "finding_id": finding_id, "finding": finding_details}
+    _finding_reviews[finding_id] = {**finding_details, "owner_id": user.user_id, "status": "pending", "trace": [
         {"step": "validate_citations", "status": "passed"},
         {"step": "await_reviewer_decision", "status": "pending"},
     ]}

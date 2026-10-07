@@ -56,7 +56,7 @@ def evaluate(corpus_path: str | Path, output_path: str | Path | None = None) -> 
             "citation_resolved": bool(item.get("document_ids")),
         })
     total = len(rows)
-    metrics = {
+    metrics: dict[str, Any] = {
         "items": total,
         "accuracy": sum(row["correct"] for row in rows) / total if total else 0.0,
         "citation_resolve_rate": sum(row["citation_resolved"] for row in rows) / total if total else 0.0,
