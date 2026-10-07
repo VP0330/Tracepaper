@@ -3,8 +3,8 @@
 from datetime import date
 from typing import Any
 
-from tracepaper.ingestion.citation import resolve_citation
 from tracepaper.ingestion.chunker import DocumentChunk
+from tracepaper.ingestion.citation import resolve_citation
 from tracepaper.retrieval import EvidenceRetriever, RetrievalResult
 
 

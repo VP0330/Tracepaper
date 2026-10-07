@@ -4,10 +4,10 @@ import json
 from pathlib import Path
 from typing import Any
 
-from tracepaper.corpus import ControlType, CorpusMetadata, PopulationItem, LabeledItem
+from tracepaper.corpus import ControlType, CorpusMetadata
+from tracepaper.corpus.jer import JournalEntryReviewGenerator
 from tracepaper.corpus.p2p import PurchaseToPayGenerator
 from tracepaper.corpus.uar import UserAccessReviewGenerator
-from tracepaper.corpus.jer import JournalEntryReviewGenerator
 
 
 class CorpusGenerator:
@@ -24,7 +24,7 @@ class CorpusGenerator:
         self.seed = seed
         self.output_dir = Path(output_dir)
         self.output_dir.mkdir(parents=True, exist_ok=True)
-        
+
         # Initialize control generators
         self.p2p_gen = PurchaseToPayGenerator(seed=seed)
         self.uar_gen = UserAccessReviewGenerator(seed=seed)
@@ -51,7 +51,7 @@ class CorpusGenerator:
         labels.extend(p2p_labels)
         metadata.controls[ControlType.PURCHASE_TO_PAY]["count"] = len(p2p_labels)
         metadata.controls[ControlType.PURCHASE_TO_PAY]["exceptions"] = sum(
-            1 for l in p2p_labels if "exception" in str(l.overall_disposition).lower()
+            1 for label in p2p_labels if "exception" in str(label.overall_disposition).lower()
         )
 
         # Generate UAR samples
@@ -61,7 +61,7 @@ class CorpusGenerator:
         labels.extend(uar_labels)
         metadata.controls[ControlType.USER_ACCESS_REVIEW]["count"] = len(uar_labels)
         metadata.controls[ControlType.USER_ACCESS_REVIEW]["exceptions"] = sum(
-            1 for l in uar_labels if "exception" in str(l.overall_disposition).lower()
+            1 for label in uar_labels if "exception" in str(label.overall_disposition).lower()
         )
 
         # Generate JER samples
@@ -71,7 +71,7 @@ class CorpusGenerator:
         labels.extend(jer_labels)
         metadata.controls[ControlType.JOURNAL_ENTRY_REVIEW]["count"] = len(jer_labels)
         metadata.controls[ControlType.JOURNAL_ENTRY_REVIEW]["exceptions"] = sum(
-            1 for l in jer_labels if "exception" in str(l.overall_disposition).lower()
+            1 for label in jer_labels if "exception" in str(label.overall_disposition).lower()
         )
 
         metadata.total_population_items = len(population)
@@ -130,22 +130,22 @@ LabeledItem {
   population_item_id: str         # Unique ID for this test item
   control_id: str                 # Which control is being tested
   control_type: str               # "purchase_to_pay" | "user_access_review" | "journal_entry_review"
-  
+
   # Ground truth attribute values
   attributes: dict[str, str]      # Per-control attributes (see control-specific schema below)
-  
+
   # Overall finding disposition
   overall_disposition: str        # "pass" | "exception" | "insufficient_evidence"
-  
+
   # Evidence tracking
   supporting_doc_ids: list[str]   # Which documents should contain the evidence
-  
+
   # Hard case indicators
   has_ocr_pages: bool             # Contains scanned/OCR'd pages
   has_distractor_docs: bool       # Contains intentional decoy documents
   has_missing_evidence: bool      # Evidence is intentionally absent
   distractor_doc_ids: list[str]   # Document IDs that are distractors
-  
+
   # Metadata
   plant_date: str                 # Date when this test case was "planted"
   description: str                # What makes this case interesting
@@ -178,18 +178,18 @@ journal_entry_review:
 if __name__ == "__main__":
     # Generate sample corpus
     gen = CorpusGenerator(seed=42, output_dir="corpus_data")
-    
+
     # Print schema first
     gen.print_label_schema()
-    
+
     # Generate samples
     corpus = gen.generate_sample_corpus(items_per_control=3)
-    
+
     # Print summary
     gen.print_summary(corpus)
-    
+
     # Save to file
     gen.save_corpus(corpus, filename="corpus_sample.json")
-    
+
     print("\n✓ Phase 1 Sample corpus ready for review!")
-    print(f"  View: corpus_data/corpus_sample.json")
+    print("  View: corpus_data/corpus_sample.json")

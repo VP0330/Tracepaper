@@ -1,15 +1,16 @@
 """Reviewer API for evidence search and citation-backed findings."""
 
+import os
+import tempfile
 from functools import lru_cache
+from pathlib import Path
 from typing import Any
 from uuid import uuid4
-import os
-from pathlib import Path
-import tempfile
 
 from fastapi import Depends, FastAPI, File, HTTPException, Query, UploadFile
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from pydantic import BaseModel, Field
+from sqlalchemy import select
 
 from tracepaper.agent.enforcement import EnforcementPipeline
 from tracepaper.agent.loop import AgentLoop
@@ -17,17 +18,20 @@ from tracepaper.agent.rules import SUPPORTED_OPERATORS, evaluate_rule
 from tracepaper.agent.tools import EvidenceTools
 from tracepaper.auth import AuthService, public_user
 from tracepaper.config import get_settings
-from tracepaper.logging import get_logger, setup_logging
-from tracepaper.llm.factory import create_llm_client
 from tracepaper.ingestion.chunker import chunk_pages
 from tracepaper.ingestion.extraction import DocumentExtractor
 from tracepaper.ingestion.understanding import DocumentUnderstandingService
+from tracepaper.llm.factory import create_llm_client
+from tracepaper.logging import get_logger, setup_logging
 from tracepaper.retrieval import EvidenceRetriever
 from tracepaper.storage.models import (
-    AuditFindingRecord, AuditRuleRecord, ClassificationTypeRecord, DocumentSegmentRecord,
-    UploadedDocumentRecord, UserRecord,
+    AuditFindingRecord,
+    AuditRuleRecord,
+    ClassificationTypeRecord,
+    DocumentSegmentRecord,
+    UploadedDocumentRecord,
+    UserRecord,
 )
-from sqlalchemy import select
 
 settings = get_settings()
 setup_logging(settings.log_level)

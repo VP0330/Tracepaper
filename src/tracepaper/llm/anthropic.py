@@ -1,9 +1,10 @@
 """Anthropic LLM client implementation."""
 
 from typing import Any
+
 import anthropic
 
-from .client import LLMClient, ChatResponse, ToolCall
+from .client import ChatResponse, ToolCall
 
 
 class AnthropicClient:

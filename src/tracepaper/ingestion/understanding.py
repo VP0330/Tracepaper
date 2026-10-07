@@ -216,7 +216,7 @@ def _build_segments(pages: list[Any], results: list[dict[str, Any] | None]) -> l
 
     segments: list[dict[str, Any]] = []
     scores: list[list[float]] = []
-    for page, result in zip(pages, resolved):
+    for page, result in zip(pages, resolved, strict=False):
         if segments and segments[-1]["document_type"] == result["document_type"]:
             segments[-1]["end_page"] = page.page
             scores[-1].append(result["confidence"])
@@ -227,7 +227,7 @@ def _build_segments(pages: list[Any], results: list[dict[str, Any] | None]) -> l
                 "summary": result["summary"], "fields": {},
             })
             scores.append([result["confidence"]])
-    for segment, values in zip(segments, scores):
+    for segment, values in zip(segments, scores, strict=False):
         segment["confidence"] = sum(values) / len(values)
     return segments
 

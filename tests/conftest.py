@@ -1,8 +1,9 @@
 """Pytest configuration and shared fixtures."""
 
-import pytest
 import sys
 from pathlib import Path
+
+import pytest
 
 # Add src to path
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
@@ -19,7 +20,7 @@ def settings():
 @pytest.fixture
 def mock_llm_client(settings):
     """Provide a mock LLM client for testing."""
-    from tracepaper.llm.client import ChatResponse, ToolCall
+    from tracepaper.llm.client import ChatResponse
 
     class MockLLMClient:
         def chat(self, messages, tools=None, json_schema=None):

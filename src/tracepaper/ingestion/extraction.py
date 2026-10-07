@@ -1,10 +1,10 @@
 """Document extraction with text-layer and OCR provenance."""
 
+import csv
 from dataclasses import dataclass
 from email import policy
 from email.parser import BytesParser
 from pathlib import Path
-import csv
 
 
 @dataclass(frozen=True)

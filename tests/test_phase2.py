@@ -2,11 +2,11 @@
 
 from pathlib import Path
 
-from tracepaper.ingestion.citation import resolve_citation
 from tracepaper.ingestion.chunker import chunk_pages
+from tracepaper.ingestion.citation import resolve_citation
 from tracepaper.ingestion.extraction import DocumentExtractor, ExtractedPage
-from tracepaper.storage import ChunkStore
 from tracepaper.retrieval import EvidenceRetriever
+from tracepaper.storage import ChunkStore
 
 
 def test_extracts_csv_and_chunks_with_provenance(tmp_path: Path):

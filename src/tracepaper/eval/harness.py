@@ -1,8 +1,8 @@
 """Deterministic evaluation harness for the synthetic corpus."""
 
+import json
 from collections import Counter
 from datetime import date
-import json
 from pathlib import Path
 from typing import Any
 

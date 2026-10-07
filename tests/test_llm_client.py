@@ -1,10 +1,7 @@
 """Tests for LLM client abstraction."""
 
-import pytest
-import json
-from pathlib import Path
-from tracepaper.llm.client import ChatResponse, ToolCall, CachedLLMClient
 from tracepaper.llm.cache import DatabaseCachedLLMClient
+from tracepaper.llm.client import CachedLLMClient, ChatResponse, ToolCall
 
 
 class MockClient:
@@ -72,11 +69,11 @@ def test_cached_client_cache_disabled(tmp_path):
     messages = [{"role": "user", "content": "test"}]
 
     # First call
-    response1 = cached.chat(messages)
+    cached.chat(messages)
     assert mock.call_count == 1
 
     # Second call should also hit mock (no cache)
-    response2 = cached.chat(messages)
+    cached.chat(messages)
     assert mock.call_count == 2
 
 

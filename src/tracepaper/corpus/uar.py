@@ -7,7 +7,6 @@ from typing import Any
 from tracepaper.corpus import (
     ControlType,
     Disposition,
-    Citation,
     LabeledItem,
     PopulationItem,
 )
@@ -79,7 +78,7 @@ class UserAccessReviewGenerator:
         """Generate mock access review memo/certification."""
         status = "CERTIFIED" if is_signed else "DRAFT"
         user_msg = "All terminated users have been removed" if not missing_users else "Review pending user removals"
-        
+
         return {
             "type": "access_review_memo",
             "system": system,

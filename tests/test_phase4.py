@@ -26,7 +26,7 @@ def test_enforcement_rejects_hallucinated_citation():
     }
     try:
         pipeline.validate_finding(payload)
-        assert False, "hallucinated citation should be rejected"
+        raise AssertionError("hallucinated citation should be rejected")
     except ValueError as error:
         assert "does not resolve" in str(error)
 
