@@ -4,8 +4,6 @@ import hashlib
 import json
 from typing import Any
 
-from sqlalchemy import select
-
 from tracepaper.storage.db import get_engine, get_session_factory, init_db
 from tracepaper.storage.models import LLMCacheRecord
 

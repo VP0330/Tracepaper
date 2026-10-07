@@ -8,7 +8,6 @@ from tracepaper.llm.client import ChatResponse, LLMClient
 from .enforcement import EnforcementPipeline, Finding
 from .tools import EvidenceTools
 
-
 TOOL_DEFINITIONS = [
     {"name": "search_evidence", "description": "Search indexed evidence.", "input_schema": {"type": "object"}},
     {"name": "fetch_page", "description": "Fetch chunks for a document page.", "input_schema": {"type": "object"}},

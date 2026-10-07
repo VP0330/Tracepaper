@@ -1,12 +1,10 @@
 """LLM Client abstraction with Protocol for provider-agnostic interface."""
 
-import json
 import hashlib
-import os
-from typing import Protocol, Any, Literal
+import json
 from dataclasses import dataclass
 from pathlib import Path
-from abc import ABC
+from typing import Any, Protocol
 
 
 @dataclass
@@ -49,7 +47,7 @@ class LLMClient(Protocol):
         ...
 
 
-class CachedLLMClient(ABC):
+class CachedLLMClient:
     """Base class for cached LLM clients. Wraps any LLMClient with disk caching."""
 
     def __init__(
@@ -107,7 +105,7 @@ class CachedLLMClient(ABC):
         cache_file = self.cache_dir / f"{cache_key}.json"
         if cache_file.exists():
             try:
-                with open(cache_file, "r") as f:
+                with open(cache_file) as f:
                     data = json.load(f)
                     # Reconstruct ChatResponse
                     tool_calls = None

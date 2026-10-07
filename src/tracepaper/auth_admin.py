@@ -1,7 +1,6 @@
 """Provision the first Tracepaper administrator."""
 
 import getpass
-import sys
 
 from tracepaper.auth import AuthService
 from tracepaper.config import get_settings
@@ -24,4 +23,4 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    sys.exit(main())
+    main()

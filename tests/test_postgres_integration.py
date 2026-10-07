@@ -5,15 +5,17 @@ import uuid
 
 import pytest
 from fastapi.testclient import TestClient
-from sqlalchemy import select
 
 from tracepaper import api
 from tracepaper.auth import AuthService
-from tracepaper.config import Settings
 from tracepaper.retrieval import EvidenceRetriever
 from tracepaper.storage.models import (
-    AuditFindingRecord, AuditRuleRecord, ChunkRecord, DocumentRecord,
-    UploadedDocumentRecord, UserRecord,
+    AuditFindingRecord,
+    AuditRuleRecord,
+    ChunkRecord,
+    DocumentRecord,
+    UploadedDocumentRecord,
+    UserRecord,
 )
 
 pytestmark = pytest.mark.skipif(

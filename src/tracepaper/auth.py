@@ -2,11 +2,11 @@
 
 from __future__ import annotations
 
-from datetime import datetime, timedelta
 import hashlib
 import hmac
 import secrets
 import uuid
+from datetime import datetime, timedelta
 
 from sqlalchemy import select
 
@@ -120,7 +120,7 @@ class AuthService:
             ))
             if record is None:
                 return None
-            user = session.get(UserRecord, record.user_id)
+            user: UserRecord | None = session.get(UserRecord, record.user_id)
             if user:
                 session.expunge(user)
             return user

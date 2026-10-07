@@ -1,10 +1,10 @@
 """Document extraction with text-layer and OCR provenance."""
 
+import csv
 from dataclasses import dataclass
 from email import policy
 from email.parser import BytesParser
 from pathlib import Path
-import csv
 
 
 @dataclass(frozen=True)
@@ -47,15 +47,15 @@ class DocumentExtractor:
         # Early Phase 2 fixtures used a text-backed .pdf placeholder. Keep those
         # fixtures ingestible while real PDFs continue through pdfplumber/OCR.
         try:
-            import fitz
-            import pytesseract
+            import fitz  # type: ignore[import-untyped]
+            import pytesseract  # type: ignore[import-untyped]
             from PIL import Image
 
             document = fitz.open(path)
             ocr_pages = []
             for index, page in enumerate(document, 1):
                 pixmap = page.get_pixmap(matrix=fitz.Matrix(2, 2), alpha=False)
-                image = Image.frombytes("RGB", [pixmap.width, pixmap.height], pixmap.samples)
+                image = Image.frombytes("RGB", (pixmap.width, pixmap.height), pixmap.samples)
                 data = pytesseract.image_to_data(image, output_type=pytesseract.Output.DICT)
                 text = pytesseract.image_to_string(image).strip()
                 confidences = [float(value) for value in data["conf"] if float(value) >= 0]

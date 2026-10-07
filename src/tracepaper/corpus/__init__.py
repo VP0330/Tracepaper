@@ -1,14 +1,12 @@
 """Corpus generation for synthetic test data with ground-truth labels."""
 
-from dataclasses import dataclass, field, asdict
+from dataclasses import asdict, dataclass, field
+from datetime import datetime
 from enum import Enum
 from typing import Any
-from datetime import datetime, timedelta
-import json
-from pathlib import Path
 
 
-class ControlType(str, Enum):
+class ControlType(str, Enum):  # noqa: UP042
     """Supported control types."""
 
     PURCHASE_TO_PAY = "purchase_to_pay"
@@ -16,7 +14,7 @@ class ControlType(str, Enum):
     JOURNAL_ENTRY_REVIEW = "journal_entry_review"
 
 
-class Disposition(str, Enum):
+class Disposition(str, Enum):  # noqa: UP042
     """Possible finding dispositions."""
 
     PASS = "pass"
@@ -52,20 +50,20 @@ class LabeledItem:
     population_item_id: str
     control_id: str
     control_type: ControlType
-    
+
     # Ground truth findings
     attributes: dict[str, str]  # e.g., {"approval_exists": "yes", "approval_on_time": "yes"}
     overall_disposition: Disposition
-    
+
     # Expected evidence documents (which docs should contain the evidence)
     supporting_doc_ids: list[str]
-    
+
     # Hard case flags
     has_ocr_pages: bool = False
     has_distractor_docs: bool = False
     has_missing_evidence: bool = False
     distractor_doc_ids: list[str] = field(default_factory=list)
-    
+
     # Metadata
     plant_date: str = ""
     description: str = ""  # What makes this case interesting/hard
@@ -87,10 +85,10 @@ class PopulationItem:
     population_item_id: str
     control_id: str
     control_type: ControlType
-    
+
     # Item-specific data
     data: dict[str, Any]  # e.g., {"vendor": "Acme Inc", "amount": 15000}
-    
+
     # Documents supporting this item
     document_ids: list[str]
 

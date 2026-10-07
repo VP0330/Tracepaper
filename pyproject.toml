@@ -90,6 +90,9 @@ ignore = [
     "E501",  # line too long (handled by formatter)
 ]
 
+[tool.ruff.lint.flake8-bugbear]
+extend-immutable-calls = ["fastapi.Depends", "fastapi.File"]
+
 [tool.mypy]
 python_version = "3.11"
 warn_return_any = true

@@ -1,8 +1,8 @@
 """Provenance-preserving text chunking."""
 
-from dataclasses import dataclass, asdict
 import hashlib
 import re
+from dataclasses import asdict, dataclass
 
 from .extraction import ExtractedPage
 
